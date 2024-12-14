@@ -1,25 +1,61 @@
 package com.devsuperior.dscommerce.controllers;
 
-import org.springframework.boot.test.context.SpringBootTest;
+import static io.restassured.RestAssured.baseURI;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.is;
 
-import static io.restassured.RestAssured.*;
-import static io.restassured.matcher.RestAssuredMatchers.*;
-import static org.hamcrest.Matchers.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import com.devsuperior.dscommerce.tests.TokenUtil;
+
+import io.restassured.http.ContentType;
 
 public class ProductControllerRA {
 
 	private Long existingProductId, nonExistingProductId;
 	
-	private String productName = "Macbook";
+	private String clientUsername,clientPassword,adminUsername,adminPassword;
+	private String clientToken,adminToken,invalidToken;
+	
+	private String productName;
+	private Map<String , Object> postProductsInstance;
 
 	@BeforeEach
 	public void setup() throws Exception {
-
+        clientUsername = "maria@gmail.com";
+        adminUsername = "alex@gmail.com";
+        adminPassword = "123456";
+        clientPassword = "123456";
+        
+        clientToken = TokenUtil.obtainAccessToken(clientUsername, clientPassword);
+        adminToken =  TokenUtil.obtainAccessToken(adminUsername,adminPassword);
+        invalidToken = adminToken + "xpto";// invalid token
+		
+		
 		baseURI = "http://localhost:8080";
-
+		 productName = "Macbook";
+		 postProductsInstance = new HashMap<String, Object>();
+		 postProductsInstance.put("name", "Meu produto");
+		 postProductsInstance.put("description", "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Qui ad, adipisci illum ipsam velit et odit eaque reprehenderit ex maxime delectus dolore labore, quisquam quae tempora natus esse aliquam veniam doloremque quam minima culpa alias maiores commodi. Perferendis enim");
+		 postProductsInstance.put("imgUrl","https://raw.githubusercontent.com/devsuperior/dscatalog-resources/master/backend/img/1-big.jpg");
+		 postProductsInstance.put("price", 50.0);
+		 
+		 List<Map<String, Object>> categories = new ArrayList<Map<String,Object>>();
+		 Map<String,Object> category1 = new HashMap<String, Object>();
+		 category1.put("id", 2);
+		 Map<String,Object> category2 = new HashMap<String, Object>();
+		 category2.put("id", 3);
+		 categories.add(category1);
+		 categories.add(category2);
+		 postProductsInstance.put("categories", categories);
 	}
 
 	@Test
@@ -62,4 +98,27 @@ public class ProductControllerRA {
 		.statusCode(200)
 		.body("content.findAll {it.price > 2000}.name",hasItems("Smart TV","PC Gamer Weed"));
 	}
+	
+	@Test
+	public void insertShloudReturnProductCreatedWhenAdminLogged() {
+	    org.json.simple.JSONObject newProduct = new org.json.simple.JSONObject(postProductsInstance); // Criando JSON
+	    System.out.println(newProduct.toJSONString()); // Log para verificar o JSON gerado
+
+	    given()
+	        .header("Content-type", "application/json")
+	        .header("Authorization", "Bearer " + adminToken)
+	        .body(newProduct)
+	        .contentType(ContentType.JSON)
+	        .accept(ContentType.JSON)
+	    .when()
+	        .post("/products")
+	    .then()
+	        .log().ifError() // Loga resposta em caso de erro
+	        .statusCode(201) // Espera que seja 201
+	        .body("name", equalTo("Meu produto"))
+	        .body("price", is(50.0F))
+	        .body("imgUrl", equalTo("https://raw.githubusercontent.com/devsuperior/dscatalog-resources/master/backend/img/1-big.jpg"))
+	        .body("categories.id", hasItems(2, 3));
+	}
+
 }
