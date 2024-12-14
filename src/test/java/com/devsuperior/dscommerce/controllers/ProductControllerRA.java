@@ -228,6 +228,44 @@ public class ProductControllerRA {
 	        .body("errors.message[0]", equalTo("Deve ter pelo menos uma categoria"));
 	       
 	}
+	
+	
+	@Test
+	public void  ShouldReturnForbiddenWhenClientLogged(){
+		 org.json.simple.JSONObject newProduct = new org.json.simple.JSONObject(postProductsInstance); // Criando JSON
+		 
+		 given()
+	        .header("Content-type", "application/json")
+	        .header("Authorization", "Bearer " + clientToken)
+	        .body(newProduct)
+	        .contentType(ContentType.JSON)
+	        .accept(ContentType.JSON)
+	    .when()
+	        .post("/products")
+	    .then()
+	        .log().ifError() // Loga resposta em caso de erro
+	        .statusCode(403); // Espera que seja 403
+	        
+	}
+	
+	
+	@Test
+	public void  ShouldReturnUnauthorizednWhenInvalidToken(){
+		 org.json.simple.JSONObject newProduct = new org.json.simple.JSONObject(postProductsInstance); // Criando JSON
+		 
+		 given()
+	        .header("Content-type", "application/json")
+	        .header("Authorization", "Bearer " + invalidToken)
+	        .body(newProduct)
+	        .contentType(ContentType.JSON)
+	        .accept(ContentType.JSON)
+	    .when()
+	        .post("/products")
+	    .then()
+	        .log().ifError() // Loga resposta em caso de erro
+	        .statusCode(401); // Espera que seja 401
+	        
+	}
 
 
 
