@@ -120,5 +120,115 @@ public class ProductControllerRA {
 	        .body("imgUrl", equalTo("https://raw.githubusercontent.com/devsuperior/dscatalog-resources/master/backend/img/1-big.jpg"))
 	        .body("categories.id", hasItems(2, 3));
 	}
+	
+	
+	@Test
+	public void insertShouldUnprocessableEntityWhenAdminLoggedAndInvalidName() {
+		postProductsInstance.put("name", "ab");
+	    org.json.simple.JSONObject newProduct = new org.json.simple.JSONObject(postProductsInstance); // Criando JSON
+	    System.out.println(newProduct.toJSONString()); // Log para verificar o JSON gerado
+
+	    given()
+	        .header("Content-type", "application/json")
+	        .header("Authorization", "Bearer " + adminToken)
+	        .body(newProduct)
+	        .contentType(ContentType.JSON)
+	        .accept(ContentType.JSON)
+	    .when()
+	        .post("/products")
+	    .then()
+	        .log().ifError() // Loga resposta em caso de erro
+	        .statusCode(422) // Espera que seja 422
+	        .body("errors.message[0]", equalTo("Nome precisar ter de 3 a 80 caracteres"));
+	       
+	}
+	
+	@Test
+	public void insertShouldUnprocessableEntityWhenAdminLoggedAndInvalidDescription() {
+		postProductsInstance.put("description", "ab");
+	    org.json.simple.JSONObject newProduct = new org.json.simple.JSONObject(postProductsInstance); // Criando JSON
+	    System.out.println(newProduct.toJSONString()); // Log para verificar o JSON gerado
+
+	    given()
+	        .header("Content-type", "application/json")
+	        .header("Authorization", "Bearer " + adminToken)
+	        .body(newProduct)
+	        .contentType(ContentType.JSON)
+	        .accept(ContentType.JSON)
+	    .when()
+	        .post("/products")
+	    .then()
+	        .log().ifError() // Loga resposta em caso de erro
+	        .statusCode(422) // Espera que seja 422
+	        .body("errors.message[0]", equalTo("Descrição precisa ter no mínimo 10 caracteres"));
+	       
+	}
+	
+	@Test
+	public void insertShouldUnprocessableEntityWhenAdminLoggedAndInvalidPriceIsNegative() {
+		postProductsInstance.put("price", "-50");
+	    org.json.simple.JSONObject newProduct = new org.json.simple.JSONObject(postProductsInstance); // Criando JSON
+	    System.out.println(newProduct.toJSONString()); // Log para verificar o JSON gerado
+
+	    given()
+	        .header("Content-type", "application/json")
+	        .header("Authorization", "Bearer " + adminToken)
+	        .body(newProduct)
+	        .contentType(ContentType.JSON)
+	        .accept(ContentType.JSON)
+	    .when()
+	        .post("/products")
+	    .then()
+	        .log().ifError() // Loga resposta em caso de erro
+	        .statusCode(422) // Espera que seja 422
+	        .body("errors.message[0]", equalTo("O preço deve ser positivo"));
+	       
+	}
+	
+	
+	@Test
+	public void insertShouldUnprocessableEntityWhenAdminLoggedAndInvalidPriceIsZero() {
+		postProductsInstance.put("price", "0.0");
+	    org.json.simple.JSONObject newProduct = new org.json.simple.JSONObject(postProductsInstance); // Criando JSON
+	    System.out.println(newProduct.toJSONString()); // Log para verificar o JSON gerado
+
+	    given()
+	        .header("Content-type", "application/json")
+	        .header("Authorization", "Bearer " + adminToken)
+	        .body(newProduct)
+	        .contentType(ContentType.JSON)
+	        .accept(ContentType.JSON)
+	    .when()
+	        .post("/products")
+	    .then()
+	        .log().ifError() // Loga resposta em caso de erro
+	        .statusCode(422) // Espera que seja 422
+	        .body("errors.message[0]", equalTo("O preço deve ser positivo"));
+	       
+	}
+	
+	
+	@Test
+	public void insertShouldUnprocessableEntityWhenAdminLoggedAndProductHasNoCategory() {
+		postProductsInstance.put("categories", null);
+	    org.json.simple.JSONObject newProduct = new org.json.simple.JSONObject(postProductsInstance); // Criando JSON
+	    System.out.println(newProduct.toJSONString()); // Log para verificar o JSON gerado
+
+	    given()
+	        .header("Content-type", "application/json")
+	        .header("Authorization", "Bearer " + adminToken)
+	        .body(newProduct)
+	        .contentType(ContentType.JSON)
+	        .accept(ContentType.JSON)
+	    .when()
+	        .post("/products")
+	    .then()
+	        .log().ifError() // Loga resposta em caso de erro
+	        .statusCode(422) // Espera que seja 422
+	        .body("errors.message[0]", equalTo("Deve ter pelo menos uma categoria"));
+	       
+	}
+
+
 
 }
